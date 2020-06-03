@@ -35,6 +35,7 @@ Incident light arriving at a hair may be scattered one more times before leaving
 
 
 ![alt text](geometry.png "Geometry Configuration")
+![alt text](geometry2.png "Geometry Configuration2")
 
 
 It is found useful to consider these scattering modes separately and so the hair BSDF is written as a sum over terms p
