@@ -12,21 +12,37 @@ In this model these problems are addressed, and the solution is made effective o
 
 
 ## Implementation 
-**Integration to Yocto/yocto_trace.cpp**
+**Integration to Yocto/yocto_trace.cpp** 
 We followed the implementation made by the authors of the paper [pbrt-v3/hair.cpp](https://github.com/mmp/pbrt-v3/blob/master/src/materials/hair.cpp). First of all we needed to include a library: 
-'''cpp
-#include <numeric>
-''' 
+
     #include <numeric>
 
 then we defined the costant geometric parameters of the model :
 
-    static const int pMax = 3;  
-    static const float eta = 1.55f;
-    static const float beta_m = 0.3f;
-    static const float beta_n = 0.3f;
-    const float h = 0.0f;
-    float sin2kAlpha[3], cos2kAlpha[3];
+    static const int pMax = 3;        //number of segments of scattered light
+    static const float eta = 1.55f;   // the index of refraction of the interior of the hair
+    static const float beta_m = 0.3f; //the longitudinal roughness of the hair
+    static const float beta_n = 0.3f; //the azimuthal roughness
+    const float h = 0.0f;               //offset along the curve width where the ray intersected theoriented ribbon  
+    float sin2kAlpha[3], cos2kAlpha[3]; //the angle that the small scales on the surface of hair are offset fromthe base cylinder
     float v[pMax + 1];
     static const float SqrtPiOver8 = 0.626657069f;
-    
+
+Moreover, some general utility functions are defined for better performances. 
+
+There are a few quantities related to the directions ωo and ωi that are needed for evaluating the hair scattering model. Specifically, the sine and cosine of the angle θ that each direction makes with the plane perpendicular to the curve, and the angle φ in the azimuthal coordinate system.
+Incident light arriving at a hair may be scattered one more times before leaving the hair. They used to denote the number of path segments it follows inside the hair before being scattered back out to air. For instance p= 0 corresponds to R, for reflection, p= 1 is TT, for two transmissions p= 2 is TRT,p= 3 is TRRT, and so forth.
+
+![alt text](geometry.png "Geometry Configuration")
+It is found useful to consider these scattering modes separately and so the hair BSDF is written as a sum over terms p
+
+*f(ωo, ωi) = (p=0,∞)∑fp(ωo, ωi)*
+
+To make the scattering model implementation and importance sampling easier, many hair scattering models factor *f* into terms where one depends only on theangles *θ* and another on *φ*, the difference between *φo*and*φi*. This semi-separable model is given by:
+
+*fp(ωo, ωi) =Mp(θo, θi)Ap(ωo)Np(φ)/|cosθ|*
+Where :
+1. *Mp* = longitudinal scattering function
+2. *Ap* = attenuation function,
+3. *Np* = azimuthal scattering function
+
