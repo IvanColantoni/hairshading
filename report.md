@@ -54,8 +54,13 @@ Where :
 
 
 **1. *Mp* = longitudinal scattering function**
+
+
 **2. *Ap* = attenuation function,**
+
+
 **3. *Np* = azimuthal scattering function**
+
 
 Given the incoming and outcming directions, the angle *φo* in the perpendicular plane can be computed with std::atan (and the same for *φi*) : 
 
