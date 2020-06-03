@@ -12,15 +12,16 @@ In this model these problems are addressed, and the solution is made effective o
 
 
 ## Implementation 
-**Integration to Yocto/yocto_trace.cpp
+**Integration to Yocto/yocto_trace.cpp**
 We followed the implementation made by the authors of the paper [pbrt-v3/hair.cpp](https://github.com/mmp/pbrt-v3/blob/master/src/materials/hair.cpp). First of all we needed to include a library: 
 '''cpp
 #include <numeric>
 ''' 
     #include <numeric>
 
-then we defined the costant parameters of the model:
-    static const int pMax = 3;
+then we defined the costant geometric parameters of the model :
+
+    static const int pMax = 3;  
     static const float eta = 1.55f;
     static const float beta_m = 0.3f;
     static const float beta_n = 0.3f;
