@@ -88,6 +88,8 @@ Different roughness values are used for different values ofp. For p= 1, roughnes
     v[2]    = 4 * v[0];
 
 The **Ap** term describes how much of the incident light is affected by each of thescattering modes *p*. This absorption is what gives hair and fur its color. The *Ap* function that the author implement, models all reflection and transmission at the hair boundary as perfectly specular. This simplifies the implementation and give reasonable results. Here we provide the pseudocode as it is meant to be implemented in the code : 
+    
+    
     〈Hair Local Functions〉 
      static std::array<Spectrum, pMax + 1> Ap(Float cosThetaO,Float eta,Float h, const Spectrum &T) {std::array<Spectrum, pMax + 1> ap;
     〈Compute p= 0 attenuation at initial cylinder intersection〉
