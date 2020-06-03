@@ -33,15 +33,25 @@ Moreover, some general utility functions are defined for better performances.
 There are a few quantities related to the directions ωo and ωi that are needed for evaluating the hair scattering model. Specifically, the sine and cosine of the angle θ that each direction makes with the plane perpendicular to the curve, and the angle φ in the azimuthal coordinate system.
 Incident light arriving at a hair may be scattered one more times before leaving the hair. They used to denote the number of path segments it follows inside the hair before being scattered back out to air. For instance p= 0 corresponds to R, for reflection, p= 1 is TT, for two transmissions p= 2 is TRT,p= 3 is TRRT, and so forth.
 
+
 ![alt text](geometry.png "Geometry Configuration")
+
+
 It is found useful to consider these scattering modes separately and so the hair BSDF is written as a sum over terms p
+
 
 *f(ωo, ωi) = (p=0,∞)∑fp(ωo, ωi)*
 
-To make the scattering model implementation and importance sampling easier, many hair scattering models factor *f* into terms where one depends only on theangles *θ* and another on *φ*, the difference between *φo*and*φi*. This semi-separable model is given by:
+
+To make the scattering model implementation and importance sampling easier, many hair scattering models factor *f* into terms where one depends only on theangles *θ* and another on *φ*, the difference between *φo* and *φi*. This semi-separable model is given by:
+
 
 *fp(ωo, ωi) =Mp(θo, θi)Ap(ωo)Np(φ)/|cosθ|*
+
+
 Where :
+
+
 1. *Mp* = longitudinal scattering function
 2. *Ap* = attenuation function,
 3. *Np* = azimuthal scattering function
