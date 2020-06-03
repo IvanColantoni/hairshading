@@ -53,9 +53,9 @@ To make the scattering model implementation and importance sampling easier, many
 Where :
 
 
-1. *Mp* = longitudinal scattering function
-2. *Ap* = attenuation function,
-3. *Np* = azimuthal scattering function
+**1. *Mp* = longitudinal scattering function**
+**2. *Ap* = attenuation function,**
+**3. *Np* = azimuthal scattering function**
 
 Given the incoming and outcming directions, the angle *φo* in the perpendicular plane can be computed with std::atan (and the same for *φi*) : 
 
@@ -65,7 +65,7 @@ Given the incoming and outcming directions, the angle *φo* in the perpendicular
     float cosThetaO = sqrt(1 - Sqr(sinThetaO));
     float phiO      = std::atan2(wo.z, wo.y);
 
-* Longitudinal Scattering Mp
+**1. Longitudinal Scattering Mp**
 
 
 For longitudinal scattering **Mp** the model implemented here was developed by d’Eon et al. (2011). Although it turns out that this model isn't numerically stable for low roughness variance *v*, which is parametric controlled. Then, the *v <= .1* test in the implementation below selects between the two formulations:
@@ -88,9 +88,10 @@ Different roughness values are used for different values ofp. For p= 1, roughnes
             (0.726f * beta_m + 0.812f * beta_m * beta_m + 3.7f * Pow<20>(beta_m));
     v[1]    = .25 * v[0];
     v[2]    = 4 * v[0];
+    v[3]    = v[2]
 
 
-* Attenation Function 
+**2. Attenation Function Ap**
 
 
 The **Ap** term describes how much of the incident light is affected by each of thescattering modes *p*. This absorption is what gives hair and fur its color. The *Ap* function that the author implement, models all reflection and transmission at the hair boundary as perfectly specular. This simplifies the implementation and give reasonable results. Here we provide the pseudocode as it is meant to be implemented in the code : 
@@ -109,7 +110,7 @@ The **Ap** term describes how much of the incident light is affected by each of 
 .... specify the code in the pseudo-code
 
 
-* Azimuthal Scattering Np
+**3. Azimuthal Scattering Np**
 
 This model covers the scattering part that depends on the angle *φ*. First we need to knwo how an incident ray is deflected by specular reflection and trasmission in the normal plane. This is done by the function: 
 
@@ -121,7 +122,7 @@ This model covers the scattering part that depends on the angle *φ*. First we n
 Then a logistic distribution function is used to model the scattering effect of the roughness surface. In particular, the logistic distribution is normalized and defined usually on the interval [−π, π], but for flexibility it takes values over the range [a, b]. It's called *Trimmed Logistic* .
 
     inline float Np(Float phi, int p, Float s, Float gammaO,Float gammaT) {
-        Float dphi = phi - Phi(p, gammaO, gammaT);
+        float dphi = phi - Phi(p, gammaO, gammaT);
         〈Remap dphi to[−π, π]〉
         return TrimmedLogistic(dphi, s, -Pi, Pi);
 
