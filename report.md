@@ -1,5 +1,5 @@
 # Yocto/PathExtension: Hair Shading Project
-- **Ivan Colantoni 1704031, Giulia Cassarà 1856973**
+ **Ivan Colantoni 1704031, Giulia Cassarà 1856973**
 
 The goal of our project is to integrate the model implemented by [pbrt](https://www.pbrt.org/hair.pdf), suited for hair rendering in production , in the Yocto library. In the following report we proceed to present a brief introduction to the problem, the steps that we take in order to make work the implementation, the results obtained, some comments and evaluations of the performances. 
 
@@ -112,7 +112,7 @@ The **Ap** term describes how much of the incident light is affected by each of 
     }
 
 
-.... specify the code in the pseudo-code
+.... specify the code of attenuation 
 
 
 **3. Azimuthal Scattering Np**
@@ -133,8 +133,10 @@ Then a logistic distribution function is used to model the scattering effect of 
 
 
 **Modelling Scales and evaluating the model**
-This is the last step before making the whole constructors working together. For the R terms, the presence of such angle *α* can be modelled by adding the value *2α*
-to the previous value. For the term TT, p=1, the angle is rotated in the opposite direction by *α*, to compensate the double transmittance effect. Finally for TRT a rotation by -*4α* works well for the whole effect.
+
+
+This is the last step before making the whole system working together. For the R terms, the presence of the scale angle *α* can be modelled by adding the value *2α*
+to the previous one. For the term TT, p=1, the angle is rotated in the opposite direction by *α*, to compensate the double transmittance effect. Finally for TRT a rotation by -*4α* works well for the whole effect.
 
 
 Now that all the pieces are made up, evaluating the model is straightforward because, as specified before, having *factorized* the model in semi-separable modules give us now the opportunity to evaluate the functions defined for each and sum up the individuals terms *fp*. 
@@ -161,7 +163,14 @@ The results that we have obtained show took in average:
 * 1min for those in low-resolution (256x720)
 * 7/8 min for those in high-resolution (1024x1280)
 
-results
+results: 
+![alt text](out/path/blonde_highres.jpg "Geometry Configuration")
+![alt text](out/path/redhead_hr.jpg "Geometry Configuration")
+![alt text](out/path/straight_dark_hr.jpg "Geometry Configuration")
+![alt text](out/path/natural_hr.jpg "Geometry Configuration")
+![alt text](out/path/hairballs_hr.jpg "Geometry Configuration")
+
+
 
 
 Note that playing with absorption coefficients sigma={sr,sg,sb} it has been possible to obtain different pigment of the hair with very realistic look.
