@@ -1,0 +1,280 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						8
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "libs",
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4,
+						5
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "libs"
+				},
+				{
+					"build" : "libs/yocto",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "libs/yocto",
+					"targetIndexes" : 
+					[
+						1
+					]
+				},
+				{
+					"build" : "libs/yocto_pathtrace",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "libs/yocto_pathtrace",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "libs/yocto_extension",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "libs/yocto_extension",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "libs/yocto_gui",
+					"childIndexes" : 
+					[
+						6
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 0,
+					"source" : "libs/yocto_gui",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "libs/yocto_gui/glfw",
+					"childIndexes" : 
+					[
+						7
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 1,
+					"source" : "libs/yocto_gui/ext/glfw"
+				},
+				{
+					"build" : "libs/yocto_gui/glfw/src",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 6,
+					"projectIndex" : 1,
+					"source" : "libs/yocto_gui/ext/glfw/src",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "apps",
+					"childIndexes" : 
+					[
+						9,
+						10
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "apps"
+				},
+				{
+					"build" : "apps/yscenetrace",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "apps/yscenetrace",
+					"targetIndexes" : 
+					[
+						6
+					]
+				},
+				{
+					"build" : "apps/ysceneitraces",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 8,
+					"projectIndex" : 0,
+					"source" : "apps/ysceneitraces",
+					"targetIndexes" : 
+					[
+						5
+					]
+				}
+			],
+			"name" : "RelWithDebInfo",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						8,
+						9,
+						10
+					],
+					"name" : "yocto_pathextension",
+					"targetIndexes" : 
+					[
+						1,
+						2,
+						3,
+						4,
+						5,
+						6
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						6,
+						7
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 7,
+					"id" : "glfw::@cb216bb1206c33f1f0dc",
+					"jsonFile" : "target-glfw-RelWithDebInfo-4e77739a7a8bc9c18ab7.json",
+					"name" : "glfw",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "yocto::@e229a39159fb9a4cdeaa",
+					"jsonFile" : "target-yocto-RelWithDebInfo-10b92981dc9a1b84c27f.json",
+					"name" : "yocto",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "yocto_extension::@259d92ba31e184d59c5a",
+					"jsonFile" : "target-yocto_extension-RelWithDebInfo-38bed6a7783a5ebcd17e.json",
+					"name" : "yocto_extension",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "yocto_gui::@e5da5306e8018ef5ac42",
+					"jsonFile" : "target-yocto_gui-RelWithDebInfo-994b9c6c5b913a91fec4.json",
+					"name" : "yocto_gui",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "yocto_pathtrace::@45510c61010f0b3d598e",
+					"jsonFile" : "target-yocto_pathtrace-RelWithDebInfo-41b71eb3ea9c17fc4e40.json",
+					"name" : "yocto_pathtrace",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "ysceneitraces::@1c2fb099d6103aa362d8",
+					"jsonFile" : "target-ysceneitraces-RelWithDebInfo-93719c67f81ef5b47556.json",
+					"name" : "ysceneitraces",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "yscenetrace::@f7801da1ccefd319b73d",
+					"jsonFile" : "target-yscenetrace-RelWithDebInfo-b092333839e5dc6f03da.json",
+					"name" : "yscenetrace",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/ivan/uni/AIRO2ndyear/GRAPHICS/final/04_finalproject/out/build/vscode/x64-Release",
+		"source" : "/home/ivan/uni/AIRO2ndyear/GRAPHICS/final/04_finalproject/out"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 0
+	}
+}
