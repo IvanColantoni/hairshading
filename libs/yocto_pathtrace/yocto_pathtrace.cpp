@@ -87,9 +87,9 @@ using yocto::shape::split_facevarying;
 // IMPLEMENTATION FOR SCENE EVALUATION
 // -----------------------------------------------------------------------------
 namespace yocto::pathtrace {
-static const int   pMax   = 4;
+static const int   pMax   = 3;
 static const float eta    = 1.55f;
-static const float beta_m = 0.3f;
+static const float beta_m = 0.125f;
 static const float beta_n = 0.3f;
 const float        h      = 0.0f;
 float              sin2kAlpha[3], cos2kAlpha[3];
@@ -98,7 +98,7 @@ static const float SqrtPiOver8 = 0.626657069f;
 float gammaO    = asin(h);
   float s         = SqrtPiOver8 * (0.265f * beta_n + 1.194f * beta_n * beta_n +
                               5.372f * math::pow(beta_n,20));
-vec3f sigma = {0.06, 0.10, 0.2};
+vec3f sigma = {0.06,0.10,0.20};
 // Check texture size
 static vec2i texture_size(const ptr::texture* texture) {
   if (!texture->colorf.empty()) {

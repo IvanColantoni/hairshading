@@ -44,7 +44,7 @@ It is found useful to consider these scattering modes separately and so the hair
 *f(ωo, ωi) = (p=0,∞)∑fp(ωo, ωi)*
 
 
-To make the scattering model implementation and importance sampling easier, many hair scattering models factor *f* into terms where one depends only on theangles *θ* and another on *φ*, the difference between *φo* and *φi*. This semi-separable model is given by:
+To make the scattering model implementation and importance sampling easier, many hair scattering models factor *f* into terms where one depends only on the angles *θ* and another on *φ*, the difference between *φo* and *φi*. This semi-separable model is given by:
 
 
 *fp(ωo, ωi) =Mp(θo, θi)Ap(ωo)Np(φ)/|cosθ|*
@@ -57,3 +57,47 @@ Where :
 2. *Ap* = attenuation function,
 3. *Np* = azimuthal scattering function
 
+Given the incoming and outcming directions, the angle *φo* in the perpendicular plane can be computed with std::atan (and the same for *φi*) : 
+
+    static vec3f f(const vec3f& wo, const vec3f& wi) {
+    // Compute hair coordinate system terms related to _wo_
+    float sinThetaO = wo.x;
+    float cosThetaO = sqrt(1 - Sqr(sinThetaO));
+    float phiO      = std::atan2(wo.z, wo.y);
+
+
+For longitudinal scattering **Mp** the model implemented here was developed by d’Eon et al. (2011). Although it turns out that this model isn't numerically stable for low roughness variance *v*, which is parametric controlled. Then, the *v <= .1* test in the implementation below selects between the two formulations:
+
+    static float Mp(float cosThetaI, float cosThetaO, float sinThetaI,
+    float sinThetaO, float v) {
+    float a = cosThetaI * cosThetaO / v;
+    float b = sinThetaI * sinThetaO / v;
+    float mp = (v <= .1) //test on roughness value.
+          ? (std::exp(LogI0(a) - b - 1 / v + 0.6931f + std::log(1 / (2 * v))))
+          : (std::exp(-b) * I0(a)) / (std::sinh(1 / v) * 2 * v);
+     return mp;
+    }
+
+
+Different roughness values are used for different values ofp. For p= 1, roughness is reduced by an empirical factor that models thefocusing of lightdue to refraction through the circular boundary of the hair.
+
+    // Sample $M_p$ to compute $\thetai$
+    v[0] = (0.726f * beta_m + 0.812f * beta_m * beta_m + 3.7f * Pow<20>(beta_m)) *
+            (0.726f * beta_m + 0.812f * beta_m * beta_m + 3.7f * Pow<20>(beta_m));
+    v[1]    = .25 * v[0];
+    v[2]    = 4 * v[0];
+
+The **Ap** term describes how much of the incident light is affected by each of thescattering modes *p*. This absorption is what gives hair and fur its color. The *Ap* function that the author implement, models all reflection and transmission at the hair boundary as perfectly specular. This simplifies the implementation and give reasonable results. Here we provide the pseudocode as it is meant to be implemented in the code : 
+    〈Hair Local Functions〉 
+     static std::array<Spectrum, pMax + 1> Ap(Float cosThetaO,Float eta,Float h, const Spectrum &T) {std::array<Spectrum, pMax + 1> ap;
+    〈Compute p= 0 attenuation at initial cylinder intersection〉
+    〈Compute p= 1 attenuation term〉
+    〈Compute attenuation terms up top=pMax〉
+    〈Compute attenuation term accounting for remaining orders of scattering〉
+    return ap;
+    }
+
+## Results
+
+
+## Conclusions 
