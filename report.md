@@ -38,13 +38,13 @@ Incident light arriving at a hair may be scattered one more times before leaving
 ![alt text](geometry2.png "Geometry Configuration2")
 
 
-It is found useful to consider these scattering modes separately and so the hair BSDF is written as a sum over terms p
+It has been useful to consider these scattering modes separately and so the hair BSDF is written as a sum over the terms p
 
 
 *f(ωo, ωi) = (p=0,∞)∑fp(ωo, ωi)*
 
 
-To make the scattering model implementation and importance sampling easier, many hair scattering models factor *f* into terms where one depends only on the angles *θ* and another on *φ*, the difference between *φo* and *φi*. This semi-separable model is given by:
+To make the scattering model implementation and sampling easier, many hair scattering models factor *f* into terms where one depends only on the angles *θ* and another on *φ*, the difference between *φo* and *φi*. This semi-separable model is given by:
 
 
 *fp(ωo, ωi) =Mp(θo, θi)Ap(ωo)Np(φ)/|cosθ|*
@@ -62,7 +62,7 @@ Where :
 **3. *Np* = azimuthal scattering function**
 
 
-Given the incoming and outcming directions, the angle *φo* in the perpendicular plane can be computed with std::atan (and the same for *φi*) : 
+Given the incoming and outcoming directions, the angle *φo* in the perpendicular plane can be computed with std::atan (and the same for *φi*) : 
 
     static vec3f f(const vec3f& wo, const vec3f& wi) {
     // Compute hair coordinate system terms related to _wo_
@@ -73,7 +73,7 @@ Given the incoming and outcming directions, the angle *φo* in the perpendicular
 **1. Longitudinal Scattering Mp**
 
 
-For longitudinal scattering **Mp** the model implemented here was developed by d’Eon et al. (2011). Although it turns out that this model isn't numerically stable for low roughness variance *v*, which is parametric controlled. Then, the *v <= .1* test in the implementation below selects between the two formulations:
+For longitudinal scattering **Mp** the model implemented here was developed by d’Eon et al. (2011). Although it turned out that this model isn't numerically stable for low roughness variance *v*, which is parametric controlled in that case. Then, the *v <= .1* test in the implementation below selects between the two formulations:
 
     static float Mp(float cosThetaI, float cosThetaO, float sinThetaI,
     float sinThetaO, float v) {
@@ -86,20 +86,20 @@ For longitudinal scattering **Mp** the model implemented here was developed by d
     }
 
 
-Different roughness values are used for different values ofp. For p= 1, roughness is reduced by an empirical factor that models thefocusing of lightdue to refraction through the circular boundary of the hair.
+Different roughness values are used for different values of *p*. For *p*= 1, roughness is reduced by an empirical factor that models the focusing of light due to refraction through the circular boundary of the hair.
 
     // Sample $M_p$ to compute $\thetai$
     v[0] = (0.726f * beta_m + 0.812f * beta_m * beta_m + 3.7f * Pow<20>(beta_m)) *
             (0.726f * beta_m + 0.812f * beta_m * beta_m + 3.7f * Pow<20>(beta_m));
     v[1]    = .25 * v[0];
     v[2]    = 4 * v[0];
-    v[3]    = v[2]
+    v[3]    = v[2]   //for p = 3 and above v[p]=v[2]
 
 
 **2. Attenation Function Ap**
 
 
-The **Ap** term describes how much of the incident light is affected by each of thescattering modes *p*. This absorption is what gives hair and fur its color. The *Ap* function that the author implement, models all reflection and transmission at the hair boundary as perfectly specular. This simplifies the implementation and give reasonable results. Here we provide the pseudocode as it is meant to be implemented in the code : 
+The **Ap** term describes how much of the incident light is affected by each of the scattering modes *p*. This absorption is what gives hair and fur its color. The *Ap* function, that the authors implement, models all reflection and transmission at the hair boundary as perfectly specular. This simplifies the implementation and give reasonable results. Here we provide the pseudocode as it is meant to be integrated in the code : 
     
     
     〈Hair Local Functions〉 
@@ -131,7 +131,40 @@ Then a logistic distribution function is used to model the scattering effect of 
         〈Remap dphi to[−π, π]〉
         return TrimmedLogistic(dphi, s, -Pi, Pi);
 
+
+**Modelling Scales and evaluating the model**
+This is the last step before making the whole constructors working together. For the R terms, the presence of such angle *α* can be modelled by adding the value *2α*
+to the previous value. For the term TT, p=1, the angle is rotated in the opposite direction by *α*, to compensate the double transmittance effect. Finally for TRT a rotation by -*4α* works well for the whole effect.
+
+
+Now that all the pieces are made up, evaluating the model is straightforward because, as specified before, having *factorized* the model in semi-separable modules give us now the opportunity to evaluate the functions defined for each and sum up the individuals terms *fp*. 
+
+    〈Evaluate hair BSDF〉 
+    float phi = phiI - phiO;
+    std::array<Spectrum, pMax + 1> ap = Ap(cosThetaO, eta, h, T);
+    Spectrum fsum(0.);
+    for (int p = 0; p < pMax; ++p) {〈
+        Computesinθiandcosθiterms accounting for scales〉
+        fsum += Mp(cosThetaIp, cosThetaO, sinThetaIp, sinThetaO,v[p]) *     //1.
+                Ap[p] *                                                     //2.
+                Np(phi, p, s, gammaO, gammaT);                              //3.
+    }
+    〈Compute contribution of remaining terms afterpMax〉
+    if (AbsCosTheta(wi) > 0) fsum /= AbsCosTheta(wi);
+    return fsum;
+
+
 ## Results
 
+
+The results that we have obtained show took in average:
+* 1min for those in low-resolution (256x720)
+* 7/8 min for those in high-resolution (1024x1280)
+
+results
+
+
+Note that playing with absorption coefficients sigma={sr,sg,sb} it has been possible to obtain different pigment of the hair with very realistic look.
+We noticed that for some reasons when the number of segments considered for scattering ,*p*, increases, the output will be rendered faster and tend to be smoother, but the lighting effect will result darker and more difficult to control. 
 
 ## Conclusions 
