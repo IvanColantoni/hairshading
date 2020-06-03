@@ -65,16 +65,18 @@ Given the incoming and outcming directions, the angle *φo* in the perpendicular
     float cosThetaO = sqrt(1 - Sqr(sinThetaO));
     float phiO      = std::atan2(wo.z, wo.y);
 
+* Longitudinal Scattering Mp
+
 
 For longitudinal scattering **Mp** the model implemented here was developed by d’Eon et al. (2011). Although it turns out that this model isn't numerically stable for low roughness variance *v*, which is parametric controlled. Then, the *v <= .1* test in the implementation below selects between the two formulations:
 
     static float Mp(float cosThetaI, float cosThetaO, float sinThetaI,
     float sinThetaO, float v) {
-    float a = cosThetaI * cosThetaO / v;
-    float b = sinThetaI * sinThetaO / v;
-    float mp = (v <= .1) //test on roughness value.
-          ? (std::exp(LogI0(a) - b - 1 / v + 0.6931f + std::log(1 / (2 * v))))
-          : (std::exp(-b) * I0(a)) / (std::sinh(1 / v) * 2 * v);
+        float a = cosThetaI * cosThetaO / v;
+        float b = sinThetaI * sinThetaO / v;
+        float mp = (v <= .1) //test on roughness value.
+            ? (std::exp(LogI0(a) - b - 1 / v + 0.6931f + std::log(1 / (2 * v))))
+            : (std::exp(-b) * I0(a)) / (std::sinh(1 / v) * 2 * v);
      return mp;
     }
 
@@ -87,17 +89,41 @@ Different roughness values are used for different values ofp. For p= 1, roughnes
     v[1]    = .25 * v[0];
     v[2]    = 4 * v[0];
 
+
+* Attenation Function 
+
+
 The **Ap** term describes how much of the incident light is affected by each of thescattering modes *p*. This absorption is what gives hair and fur its color. The *Ap* function that the author implement, models all reflection and transmission at the hair boundary as perfectly specular. This simplifies the implementation and give reasonable results. Here we provide the pseudocode as it is meant to be implemented in the code : 
     
     
     〈Hair Local Functions〉 
-     static std::array<Spectrum, pMax + 1> Ap(Float cosThetaO,Float eta,Float h, const Spectrum &T) {std::array<Spectrum, pMax + 1> ap;
+     Ap(Float cosThetaO,Float eta,Float h, const Spectrum &T) {std::array<Spectrum, pMax + 1> ap;
     〈Compute p= 0 attenuation at initial cylinder intersection〉
     〈Compute p= 1 attenuation term〉
     〈Compute attenuation terms up top=pMax〉
     〈Compute attenuation term accounting for remaining orders of scattering〉
     return ap;
     }
+
+
+.... specify the code in the pseudo-code
+
+
+* Azimuthal Scattering Np
+
+This model covers the scattering part that depends on the angle *φ*. First we need to knwo how an incident ray is deflected by specular reflection and trasmission in the normal plane. This is done by the function: 
+
+
+    inline Float Phi(int p, Float gammaO, Float gammaT) 
+        {return 2 * p * gammaT - 2 * gammaO + p * Pi;}     
+
+
+Then a logistic distribution function is used to model the scattering effect of the roughness surface. In particular, the logistic distribution is normalized and defined usually on the interval [−π, π], but for flexibility it takes values over the range [a, b]. It's called *Trimmed Logistic* .
+
+    inline float Np(Float phi, int p, Float s, Float gammaO,Float gammaT) {
+        Float dphi = phi - Phi(p, gammaO, gammaT);
+        〈Remap dphi to[−π, π]〉
+        return TrimmedLogistic(dphi, s, -Pi, Pi);
 
 ## Results
 

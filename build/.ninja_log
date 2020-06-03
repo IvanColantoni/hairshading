@@ -105,3 +105,7 @@
 5291	5302	1591203656	../bin/libyocto_pathtrace.a	786156a4fd8edcfc
 5302	5455	1591203656	../bin/yscenetrace	6cac00ba111d373a
 5302	5488	1591203656	../bin/ysceneitraces	51c6f1da3324dd6
+3	5322	1591204593	libs/yocto_pathtrace/CMakeFiles/yocto_pathtrace.dir/yocto_pathtrace.cpp.o	a4f2bb58ce64275b
+5322	5335	1591204593	../bin/libyocto_pathtrace.a	786156a4fd8edcfc
+5335	5490	1591204593	../bin/yscenetrace	6cac00ba111d373a
+5336	5541	1591204593	../bin/ysceneitraces	51c6f1da3324dd6
