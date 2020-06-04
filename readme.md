@@ -1,179 +1,189 @@
-# Yocto/PathExtension: Tiny Path Tracer Extension
+# Yocto/PathTrace: Hair Shading Project
+ **Ivan Colantoni 1704031, Giulia Cassarà 1856973**
 
-In this homework, you will implement a new path tracing feature from scratch
-and without assistance. In this assignment, you will have to chose one project 
-between the ones suggested below. To make sure the assignment is inclusive we 
-propose topics that are either algorithmic improvements, system implementations
-or large scene creations. Choose the assignment that better fits your interest
-and consider carefully the amount of time you will have to implement the feature.
+The goal of our project is to integrate the model implemented by [pbrt](https://www.pbrt.org/hair.pdf), suited for hair rendering in production , in the Yocto library. In the following report we proceed to present a brief introduction to the problem, the steps that we take in order to make work the implementation, the results obtained, some comments and evaluations of the performances. 
 
-To complete the assignment, you will have to
+## Introduction [pbrt](https://www.pbrt.org/hair.pdf)
 
-- **work either alone or in groups of two**, according to the indications of 
-  each project; we advise to work in pairs
-- develop an extension to either the Yocto/Trace renderer or the solution of 
-  the previous assignment that we include here --- if possible duplicate the 
-  code you needed in the Yocto extension of your choosing 
-- hand in the new code, scenes and demos as explained for each project
-- **write a relatively detailed report in a readme.md file** --- this should 
-  include what you did, how well it worked, performance numbers and include 
-  commented images 
-- **declare group members in the readme file right after the title**
-- if your project works really well, we will try to include it in the next Yocto
-  release, and give you credit for it
-- each of the project will be discussed by the professor in class --- you will
-  then interact with the professor during the assignment to understand how to 
-  better implement it
+Hair modeling in graphics is a demanding task. The geometric complexity of fibers and the singular way the light is scattered from this material make realistic hair rendering a computationally hard task. Nevertheless some models implemented on physically-based renderer work reasonably well, but either make the resulting outputs difficult to control for artists, or sometimes are more focused on some *ad-hoc* solutions that make it impossible to generalize. 
+In this model these problems are addressed, and the solution is made effective on the following contributions:
+* The implementation of a single-based fiber scattering model that allows for efficient Monte Carlo rendering of path-traced multiple fiber scattering.
+* A reparameterization of the absorption coefficient and roughness parameters that is more intuitive for artists and enables efficient workflow, while remaining physically consistent.
 
-## Framework
 
-If you still need details, see the descriptions on previous homeworks.
+## Implementation   
+**Integration to Yocto/yocto_pathtrace.cpp** 
+We followed the implementation made by the authors of the paper [pbrt-v3/hair.cpp](https://github.com/mmp/pbrt-v3/blob/master/src/materials/hair.cpp). First of all we needed to include a library: 
 
-## Functionality
+    #include <numeric>
 
-Pick one of the projects below.
+then we defined the costant geometric parameters of the model :
 
-### Algorithmic Projects
+    static const int pMax = 3;        //number of segments of scattered light
+    static const float eta = 1.55f;   // the index of refraction of the interior of the hair
+    static const float beta_m = 0.3f; //the longitudinal roughness of the hair
+    static const float beta_n = 0.3f; //the azimuthal roughness
+    const float h = 0.0f;               //offset along the curve width where the ray intersected theoriented ribbon  
+    float sin2kAlpha[3], cos2kAlpha[3]; //the angle that the small scales on the surface of hair are offset fromthe base cylinder
+    float v[pMax + 1];
+    static const float SqrtPiOver8 = 0.626657069f;
 
-- **Hair Shading (1-2 people, medium)**:
-    - implement a hair BSDF to shade realistic-looking hairs
-    - you can follow the algorithm presented in [pbrt](https://www.pbrt.org/hair.pdf)
-      that also includes a full code implementation
-    - you can get example hair models from [Bitterli](https://benedikt-bitterli.me/resources/)
-- **Denoising (1 person, easy)**:
-    - integrate the [Intel Open Image Denoise](https://openimagedenoise.github.io)
-    - modify the renderer to output what is needed for the denoiser
-    - write a new app `yimagedenoise` that takes the new images in and output the denoised ones
-    - favor HDR image processing but support both HDR and LDR
-    - compare this to your own implementation of an non-local-means denoiser; 
-      you can grab the code from anywhere you want
-- **Monte Carlo Geometry Processing (1-2 people, medium)**:
-    - this is really beautiful new work
-    - implement a few geometry processing functions using Monte Carlo methods
-    - you should be familiar with geometry processing ideas already
-    - take any examples from [Crane](http://www.cs.cmu.edu/~kmcrane/Projects/MonteCarloGeometryProcessing/paper.pdf)
-    - example code in 2D from [here](http://www.cs.cmu.edu/~kmcrane/Projects/MonteCarloGeometryProcessing/WoSLaplace2D.cpp.html)
-    - example code in 3D from [here](https://twitter.com/keenanisalive/status/1258152695074033664)
-- **Volumetric Path Tracing (2 people, hard)** for heterogenous materials:
-    - implement proper volumetric models for heterogenous materials
-    - implement volumetric textures, for now just using `image::volume`, 
-      for density and emission
-    - add these textures to both the SceneIO loader and the path tracer
-    - on this data structure, implement delta tracking as presented in [pbrt](http://www.pbr-book.org/3ed-2018/Light_Transport_II_Volume_Rendering/Sampling_Volume_Scattering.html)
-    - also implement a modern volumetric method to choose from
-        - Spectral Tracking from [Kutz et al](https://s3-us-west-1.amazonaws.com/disneyresearch/wp-content/uploads/20170823124227/Spectral-and-Decomposition-Tracking-for-Rendering-Heterogeneous-Volumes-Paper1.pdf)
-        - pseudocode of Algorithm 1 of [Miller et al](https://cs.dartmouth.edu/~wjarosz/publications/miller19null.html) --- ignore most of the math here since it is not that helpful
-    - get examples from OpenVDB
-- **Texture Synthesis (1 person, easy)**:
-    - implement texture synthesis following the [Disney method](http://www.jcgt.org/published/0008/04/02/paper.pdf)
-    - [source code](https://benedikt-bitterli.me/histogram-tiling/)
-    - for this, just add properties to the `trace::texture` object and change `eval_texture()`
-    - you should alsop provide a 2D image generator for it in the spirit of the code above but in C++
-- **SDF Shapes (1-2 people, medium)**:
-    - implement a high quality SDF shape object that is integrated within the path tracer
-    - represent SDFs as sparse hash grids; an [example on GPU](https://nosferalatu.com/SimpleGPUHashTable.html)
-    - add a new `sdf` to represent the SDF and have `object` hold a pointer to either `sdf` or `shape`
-    - change `eval_xxx()` to work for SDFs too
-    - add code to load/save SDFs in `sceneio`; just make up your own file format for now
-    - get examples from OpenVDB
+Moreover, some general utility functions are defined for better a performance. 
 
-### System Projects
+There are a few quantities related to the directions ωo and ωi that are needed for evaluating the hair scattering model. Specifically, the sine and cosine of the angle θ that each direction makes with the plane perpendicular to the curve, and the angle φ in the azimuthal coordinate system.
+Incident light arriving at a hair may be scattered one more times before leaving the hair. They used to denote the number of path segments it follows inside the hair before being scattered back out to air. For instance p= 0 corresponds to R (reflection), p= 1 is TT, for two transmissions p= 2 is TRT,p= 3 is TRRT, and so forth.
 
-- **Yocto/Python (1-2 people, easy-medium)**
-    - provide Python binding to the main Yocto/GL functionality so that 
-      we can call Yocto from Python
-    - generate the binding using [PyBind11](https://github.com/pybind/pybind11)
-    - providing full coverage of the entire API is not helpful at this point
-    - instead focus on providing enough coverage to be able to
-        - write a `yscenetrace.py` that is a Python script that can run a 
-          path tracer similar to `yscenetrace.cpp` 
-        - similarly write a `ysceneproc.py`, `yimageproc.py` and `yshapeprc.py`
-        - you should be able to call Yocto from inside Python Jupyter and see 
-          images rendered by Yocto in Jupyter
-        - extra credit: run the interactive path tracer inside Python Jupyter
-        - make sure we can pip install Yocto
-    - non-goals: do not worry about supporting the entire Yocto api
-- **NoYocto/PyTrace (2 people, medium)**
-    - do not use yocto for this
-    - write a path tracer in pure Python code
-    - use Intel's embree python wrapper
-    - your code should show images similar to hoemwork02, skip volumes
-    - to get the speed right, use `numpy` to hold all data and `jax` or `numba` to JIT fast code
-    - also write your path tracer in a wavefront fashion, which means that all actions are repeated for the whole image
-    - so, instead of runing a loop over pixel and then follow a single path, send all paths at once, ona wavefront, and iterate over the wavefront
-- **Yocto/Web (1-2 people, medium-hard)**
-    - run the Yocto/Pathtracer in the browser using [emscripten](https://emscripten.org)
-    - I know little about this so I cannot help you that much
-- **Yocto/GPU (2 people, hard)**
-    - Try to run Yocto on the GPU in any way you want, e.g. CUDA
-    - For ray-intersection either compile our code or try [NVidia/Optix](https://developer.nvidia.com/optix)
-    - I know little about this so I cannot help you that much
-- **NoYocto/Optix (2 people, hard)**
-    - I know little about this so I cannot help you that much
-    - Write a GPU path tracer outside of Yocto using [NVidia/Optix](https://developer.nvidia.com/optix)
-    - This library is targeted at high-quality GPU rendering and used by many industry GPU tracers
-    - Use as much Yocto as possible, please
-    - This library 
-    - Maybe try this framework [Falcor](https://github.com/nvidiagameworks/falcor)
-- **NoYocto/DXR (2 people, hard)**
-    - I know little about this so I cannot help you that much
-    - Write a GPU path tracer outside of Yocto using DXR
-    - This is targeted at games more than final quality rendering
-    - Use as much Yocto as possible, please
-    - [Tutorial](http://intro-to-dxr.cwyman.org)
-    - Maybe try this framework [Falcor](https://github.com/nvidiagameworks/falcor)
 
-### Scene Creation Projects
+![alt text](geometry.png "Geometry Configuration")
+![alt text](geometry2.png "Geometry Configuration2")
 
-- **MYOT (1 person, medium)**, make your own tree:
-    - write a tree generator that creates 3D trees
-    - either implement a space colonization method from 
-      [TreeSketch](https://www.researchgate.net/publication/235765743_TreeSketch_Interactive_Procedural_Modeling_of_Trees_on_a_Tablet)
-      and [Runions](http://algorithmicbotany.org/papers/colonization.egwnp2007.large.pdf)
-    - or implement a parametric generator from [Weber and Penn](https://www2.cs.duke.edu/courses/cps124/fall01/resources/p119-weber.pdf) 
-      used in [sapling tree gen](https://github.com/abpy/improved-sapling-tree-generator)
-- **MYOC (1 person, medium)**, make your own city:
-    - create a city-size scene yo show off Yocto scalability
-    - use any asset you want that is CC licensed
-    - start from openstreetmaps
-    - this will require coding
-- **MYOF (1 person, medium)**, make your own forest:
-    - create a large, detailed, natural scene like a forest
-    - use any asset you want that is CC licensed
-    - or use generators like Blender trees and grass
-    - write a command line utility that assemble these assets onto a plane 
-      randomly to create a realistic environment
-    - see tutorials on the web on how to do procedural placement (it is very easy)
-    - modify `ysceneproc` for this
-- **MYOH (1 person, easy)**, make your own homework:
-    - make small to large environment to show off Yocto/GL that we can use for next year homeworks
-    - these environments should show off the rendering features we demonstrated
-    - we are particularly interested in subdiv examples, displacement maps, etc
-    - the scenes should be compelling and of quality similar to the ones proposed this year
-    - remember to use CC licensed assets only, and include the license for them
-- **MYOS 2.0 (1 person, easy)**, make your own scene 2.0:
-    - create additional scenes that are _really compelling to look at_
-    - for this assignment, do not worry about license; use anything you want
-    - include paid models if really want to, but only if you really want to; 
-      you are not required at all for this, but I have to be honest and say that 
-      those are the best looking models
-    - the scenes have to be really compelling
-    - something like [evermotion](https://evermotion.org/shop)
-    - or like [blender](https://www.blender.org/download/demo-files/)
-    - how you convert them is up to you
 
-## Grading
+It has been useful to consider these scattering modes separately and so the hair BSDF is written as a sum over the terms p
 
-In this assignment, there is no extra credit. Instead the assignment will 
-have a higher point grade than previous assignments. We will grade on both
-difficulty and quality of the resulting images/demos and also take into
-account the number of people in the group.
 
-## Submission
+*f(ωo, ωi) = (p=0,∞)∑fp(ωo, ωi)*
 
-To submit the homework, you need to pack a ZIP file that contains all the code
-you wrote, a readme file, all scenes and images you generated.
-**Both people in the group should submit the same material.**
-The file should be called `<lastname>_<firstname>_<studentid>.zip` 
-(`<cognome>_<nome>_<matricola>.zip`) and you should exclude 
-all other directories. Send it on Google Classroom.
+
+To make the scattering model implementation and sampling easier, many hair scattering models factor *f* into terms where one depends only on the angles *θ* and another on *φ*, the difference between *φo* and *φi*. This semi-separable model is given by:
+
+
+*fp(ωo, ωi) =Mp(θo, θi)Ap(ωo)Np(φ)/|cosθ|*
+
+
+Where :
+
+
+**1. *Mp* = longitudinal scattering function**
+
+
+**2. *Ap* = attenuation function,**
+
+
+**3. *Np* = azimuthal scattering function**
+
+
+Given the incoming and outcoming directions, the angle *φo* in the perpendicular plane can be computed with std::atan (and the same for *φi*) : 
+
+    static vec3f f(const vec3f& wo, const vec3f& wi) {
+    // Compute hair coordinate system terms related to _wo_
+    float sinThetaO = wo.x;
+    float cosThetaO = sqrt(1 - Sqr(sinThetaO));
+    float phiO      = std::atan2(wo.z, wo.y);
+
+**1. Longitudinal Scattering Mp**
+
+
+For longitudinal scattering **Mp** the model implemented here was developed by d’Eon et al. (2011). Although it turned out that this model isn't numerically stable for low roughness variance *v*, which is parametric controlled in that case. Then, the *v <= .1* test in the implementation below selects between the two formulations:
+
+    static float Mp(float cosThetaI, float cosThetaO, float sinThetaI,
+    float sinThetaO, float v) {
+        float a = cosThetaI * cosThetaO / v;
+        float b = sinThetaI * sinThetaO / v;
+        float mp = (v <= .1) //test on roughness value.
+            ? (std::exp(LogI0(a) - b - 1 / v + 0.6931f + std::log(1 / (2 * v))))
+            : (std::exp(-b) * I0(a)) / (std::sinh(1 / v) * 2 * v);
+     return mp;
+    }
+
+
+Different roughness values *v* are used for different values of *p*. For *p*= 1, roughness is reduced by an empirical factor that models the focusing of light due to refraction through the circular boundary of the hair.
+
+    // Sample $M_p$ to compute $\thetai$
+    v[0] = (0.726f * beta_m + 0.812f * beta_m * beta_m + 3.7f * Pow<20>(beta_m)) *
+            (0.726f * beta_m + 0.812f * beta_m * beta_m + 3.7f * Pow<20>(beta_m));
+    v[1]    = .25 * v[0];
+    v[2]    = 4 * v[0];
+    v[3]    = v[2]   //for p = 3 and above v[p]=v[2]
+
+
+**2. Attenation Function Ap**
+
+
+The **Ap** term describes how much of the incident light is affected by each of the scattering modes *p*. This absorption is what gives hair and fur its color. The *Ap* function, that the authors implement, models all reflection and transmission at the hair boundary as perfectly specular. This simplifies the implementation and give reasonable results. Here we provide the pseudocode: 
+    
+    
+    〈Hair Local Functions〉 
+     Ap(Float cosThetaO,Float eta,Float h, const Spectrum &T) {std::array<Spectrum, pMax + 1> ap;
+    〈Compute p= 0 attenuation at initial cylinder intersection〉
+    〈Compute p= 1 attenuation term〉
+    〈Compute attenuation terms up top=pMax〉
+    〈Compute attenuation term accounting for remaining orders of scattering〉
+    return ap;
+    }
+
+
+
+
+**3. Azimuthal Scattering Np**
+
+This model covers the scattering part that depends on the angle *φ*. First we need to know how an incident ray is deflected by specular reflection and trasmission in the normal plane. This is done by the function: 
+
+
+    inline Float Phi(int p, Float gammaO, Float gammaT) 
+        {return 2 * p * gammaT - 2 * gammaO + p * Pi;}     
+
+
+Then a logistic distribution function is used to model the scattering effect of the roughness surface. In particular, the logistic distribution is normalized and defined usually on the interval [−π, π], but for flexibility it takes values over the range [a, b]. Then it's called *Trimmed Logistic* .
+
+    inline float Np(Float phi, int p, Float s, Float gammaO,Float gammaT) {
+        float dphi = phi - Phi(p, gammaO, gammaT);
+        〈Remap dphi to[−π, π]〉
+        return TrimmedLogistic(dphi, s, -Pi, Pi);
+
+
+**Modelling Scales and evaluating the model**
+
+
+This is the last step before making the whole system working together. We have to consider the tipical small angles along the surface of the fiber, of value *α*, in the scattering process. For the R terms, the presence of the scale angle *α* can be modelled by adding the value *2α*
+to the previous one. For the term TT, p=1, the angle is rotated in the opposite direction by *α*, to compensate the double transmittance effect. Finally for TRT a rotation by -*4α* works well for the whole effect.
+
+
+Now that all the pieces are made up, evaluating the model is straightforward because, as specified before, having *factorized* the model in semi-separable modules gives us the opportunity to evaluate the functions defined for each and then sum up the individuals terms *fp*. 
+
+    〈Evaluate hair BSDF〉 
+    float phi = phiI - phiO;
+    std::array<Spectrum, pMax + 1> ap = Ap(cosThetaO, eta, h, T);
+    Spectrum fsum(0.);
+    for (int p = 0; p < pMax; ++p) {〈
+        Computesinθiandcosθiterms accounting for scales〉
+        fsum += Mp(cosThetaIp, cosThetaO, sinThetaIp, sinThetaO,v[p]) *     //1.
+                Ap[p] *                                                     //2.
+                Np(phi, p, s, gammaO, gammaT);                              //3.
+    }
+    〈Compute contribution of remaining terms afterpMax〉
+    if (AbsCosTheta(wi) > 0) fsum /= AbsCosTheta(wi);
+    return fsum;
+
+
+## Results
+
+
+The results that we have obtained show took in average:
+* 1min for those in low-resolution (256x720)px
+* 7/8 min for those in high-resolution (1024x1280)px
+
+results: 
+
+
+βm= 0.125
+βn= 0.3
+
+
+![alt text](out/path/blonde_highres.jpg "Geometry Configuration")
+σa= {0.06,0.10,0.20}
+![alt text](out/path/redhead_hr.jpg "Geometry Configuration")
+σa= {0.50,1.39,2.74}
+![alt text](out/path/straight_dark_hr.jpg "Geometry Configuration")
+σa= {3.35,5.58,10.96} 
+![alt text](out/path/natural_hr.jpg "Geometry Configuration")
+σa= {0.84,1.39,2.74}
+![alt text](out/path/hairballs_hr.jpg "Geometry Configuration")
+σa= {3.35,5.58,10.96}   
+
+
+
+Note that playing with absorption coefficients sigma={sr,sg,sb} it has been possible to obtain different pigment of the hair with very realistic look.
+We noticed that for some reasons when the number of segments considered for scattering ,*p*, increases, the output will be rendered faster and tend to be cleaner, but the light spread by the hair will result lower and more difficult to control. 
+
+## References 
+* [Chiang, Matt Jen‐Yuan, et al. "A practical and controllable hair and fur model for production path tracing." Computer Graphics Forum. Vol. 35. No. 2. 2016.](https://benedikt-bitterli.me/pchfm/pchfm.pdf)
