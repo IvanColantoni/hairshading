@@ -1,12 +1,12 @@
 # Yocto/PathTrace: Hair Shading Project
  **Ivan Colantoni 1704031, Giulia Cassarà 1856973**
 
-The goal of our project is to integrate the model implemented by [pbrt](https://www.pbrt.org/hair.pdf), suited for hair rendering in production , in the Yocto library. In the following report we proceed to present a brief introduction to the problem, the steps that we take in order to make work the implementation, the results obtained, some comments and evaluations of the performances. 
+The goal of our project is to integrate the model implemented by [pbrt](https://www.pbrt.org/hair.pdf), suited for hair rendering in production, in the Yocto library. In the following report, we proceed to present a brief introduction to the problem, the steps that we take in order to make work the implementation, the results obtained, some comments, and evaluations of the performances. 
 
 ## Introduction [pbrt](https://www.pbrt.org/hair.pdf)
 
-Hair modeling in graphics is a demanding task. The geometric complexity of fibers and the singular way the light is scattered from this material make realistic hair rendering a computationally hard task. Nevertheless some models implemented on physically-based renderer work reasonably well, but either make the resulting outputs difficult to control for artists, or sometimes are more focused on some *ad-hoc* solutions that make it impossible to generalize. 
-In this model these problems are addressed, and the solution is made effective on the following contributions:
+Hair modeling in graphics is a demanding task. The geometric complexity of fibers and the singular way the light is scattered from this material make realistic hair rendering a computationally hard task. Nevertheless, some models implemented on physically-based renderer work reasonably well, but either make the resulting outputs difficult to control for artists, or sometimes are more focused on some *ad-hoc* solutions that make it impossible to generalize. 
+In this model, these problems are addressed, and the solution is made effective on the following contributions:
 * The implementation of a single-based fiber scattering model that allows for efficient Monte Carlo rendering of path-traced multiple fiber scattering.
 * A reparameterization of the absorption coefficient and roughness parameters that is more intuitive for artists and enables efficient workflow, while remaining physically consistent.
 
@@ -28,10 +28,10 @@ then we defined the costant geometric parameters of the model :
     float v[pMax + 1];
     static const float SqrtPiOver8 = 0.626657069f;
 
-Moreover, some general utility functions are defined for better a performance. 
+Moreover, some general utility functions are defined for a better performance. 
 
 There are a few quantities related to the directions ωo and ωi that are needed for evaluating the hair scattering model. Specifically, the sine and cosine of the angle θ that each direction makes with the plane perpendicular to the curve, and the angle φ in the azimuthal coordinate system.
-Incident light arriving at a hair may be scattered one more times before leaving the hair. They used to denote the number of path segments it follows inside the hair before being scattered back out to air. For instance p= 0 corresponds to R (reflection), p= 1 is TT, for two transmissions p= 2 is TRT,p= 3 is TRRT, and so forth.
+Incident light arriving at a hair may be scattered one more time before leaving the hair. They used to denote the number of path segments it follows inside the hair before being scattered back out to air. For instance p= 0 corresponds to R (reflection), p= 1 is TT, for two transmissions p= 2 is TRT,p= 3 is TRRT, and so forth.
 
 
 ![alt text](geometry.png "Geometry Configuration")
