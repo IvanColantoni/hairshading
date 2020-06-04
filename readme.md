@@ -158,7 +158,7 @@ Now that all the pieces are made up, evaluating the model is straightforward bec
 ## Results
 
 
-The results that we have obtained show took in average:
+The results that we have obtained took in average:
 * 1min for those in low-resolution (256x720)px
 * 7/8 min for those in high-resolution (1024x1280)px
 
